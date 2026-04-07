@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What should we play?</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f7f5f0; color: #1a1a1a; min-height: 100vh; padding: 24px 16px; }
+    h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 6px; text-align: center; }
+    .subtitle { text-align: center; color: #666; margin-bottom: 32px; font-size: 0.95rem; }
+    .card { background: white; border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); max-width: 480px; margin-left: auto; margin-right: auto; }
+    .field-label { font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-bottom: 10px; display: block; }
+    .field-label span { font-size: 1rem; margin-right: 6px; }
+    .field-label .optional { font-weight: 400; color: #bbb; text-transform: none; letter-spacing: 0; font-size: 0.8rem; }
+    .options { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .option-btn { padding: 8px 16px; border: 2px solid #e0e0e0; border-radius: 100px; background: white; cursor: pointer; font-size: 0.9rem; transition: all 0.15s; color: #333; }
+    .option-btn:hover { border-color: #aaa; }
+    .option-btn.selected { background: #1a1a1a; border-color: #1a1a1a; color: white; }
+    .go-btn { width: 100%; padding: 16px; background: #1a1a1a; color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: opacity 0.15s; max-width: 480px; display: block; margin: 0 auto 32px; }
+    .go-btn:hover { opacity: 0.85; }
+    .go-btn:disabled { opacity: 0.4; cursor: default; }
+    .results-title { text-align: center; font-size: 1rem; color: #888; margin-bottom: 16px; max-width: 480px; margin-left: auto; margin-right: auto; }
+    .result-card { background: white; border-radius: 16px; padding: 20px 24px; margin-bottom: 12px; max-width: 480px; margin-left: auto; margin-right: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.07); display: none; }
+    .result-card.visible { display: block; }
+    .result-card.rank-1 { border: 2px solid #1a1a1a; }
+    .result-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .result-name { font-size: 1.15rem; font-weight: 700; }
+    .result-rank { font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 100px; background: #f0f0f0; color: #555; white-space: nowrap; }
+    .rank-1 .result-rank { background: #1a1a1a; color: white; }
+    .weak-warning { font-size: 0.78rem; color: #999; margin-bottom: 8px; font-style: italic; }
+    .result-why { font-size: 0.9rem; color: #444; margin-bottom: 12px; line-height: 1.5; }
+    .result-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag { font-size: 0.75rem; padding: 3px 10px; border-radius: 100px; background: #f5f5f5; color: #666; }
+    .fit-bar-wrap { margin-top: 10px; }
+    .fit-bar-label { font-size: 0.75rem; color: #aaa; margin-bottom: 4px; }
+    .fit-bar { height: 4px; background: #eee; border-radius: 4px; overflow: hidden; }
+    .fit-bar-fill { height: 100%; background: #1a1a1a; border-radius: 4px; transition: width 0.4s ease; }
+    .result-reasons { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+    .reason-pill { font-size: 0.75rem; padding: 3px 10px; border-radius: 100px; background: #eef6ee; color: #2d6a2d; }
+    .no-results { text-align: center; padding: 32px; color: #aaa; max-width: 480px; margin: 0 auto; display: none; }
+    .no-results.visible { display: block; }
+  </style>
+</head>
+<body>
+
+  <h1>What should we play?</h1>
+  <p class="subtitle">Answer a few questions. Get 3 options.</p>
+
+  <div class="card">
+
+    <label class="field-label"><span>👥</span> How many players?</label>
+    <div class="options" id="players">
+      <button class="option-btn" data-val="2">2</button>
+      <button class="option-btn" data-val="3">3</button>
+      <button class="option-btn" data-val="4">4</button>
+      <button class="option-btn" data-val="5">5</button>
+      <button class="option-btn" data-val="6">6+</button>
+    </div>
+
+    <label class="field-label"><span>🧒</span> Youngest player?</label>
+    <div class="options" id="youngest_age">
+      <button class="option-btn" data-val="4">4–5</button>
+      <button class="option-btn" data-val="6">6–7</button>
+      <button class="option-btn" data-val="8">8–9</button>
+      <button class="option-btn" data-val="10">10+</button>
+      <button class="option-btn" data-val="18">Adults only</button>
+    </div>
+
+    <label class="field-label"><span>⏱</span> Time available?</label>
+    <div class="options" id="time_available">
+      <button class="option-btn" data-val="10">10 min</button>
+      <button class="option-btn" data-val="20">20 min</button>
+      <button class="option-btn" data-val="30">30 min</button>
+      <button class="option-btn" data-val="45">45 min</button>
+      <button class="option-btn" data-val="60">60+ min</button>
+    </div>
+
+    <label class="field-label"><span>⚡</span> Current energy?</label>
+    <div class="options" id="energy">
+      <button class="option-btn" data-val="Low">Low — tired</button>
+      <button class="option-btn" data-val="Medium">Medium — up for it</button>
+      <button class="option-btn" data-val="High">High — bouncing off walls</button>
+    </div>
+
+    <label class="field-label"><span>🧠</span> Attention span?</label>
+    <div class="options" id="attention">
+      <button class="option-btn" data-val="Low">Low — drifting</button>
+      <button class="option-btn" data-val="Medium">Medium — mostly focused</button>
+      <button class="option-btn" data-val="High">High — can concentrate</button>
+    </div>
+
+    <label class="field-label"><span>✨</span> What's the vibe? <span class="optional">(optional)</span></label>
+    <div class="options" id="mood">
+      <button class="option-btn" data-val="any">No preference</button>
+      <button class="option-btn" data-val="laugh">Laugh / silly</button>
+      <button class="option-btn" data-val="calm">Calm / bonding</button>
+      <button class="option-btn" data-val="competitive">Competitive</button>
+      <button class="option-btn" data-val="quick">Quick burst</button>
+    </div>
+
+  </div>
+
+  <button class="go-btn" id="go-btn" disabled>Find games →</button>
+
+  <div class="results-title" id="results-title" style="display:none"></div>
+  <div class="result-card rank-1" id="result-0"></div>
+  <div class="result-card" id="result-1"></div>
+  <div class="result-card" id="result-2"></div>
+  <div class="no-results" id="no-results">No great matches found. Try adjusting your filters.</div>
+
+<script>
+let GAMES = [];
+fetch('games.json')
+  .then(r => r.json())
+  .then(data => { GAMES = data; })
+  .catch(() => { document.querySelector('.subtitle').textContent = 'Error loading games. Try refreshing.'; });
+
+const AVOID_TAG_RULES = {
+  low_energy:      (i) => i.energy === 'Low',
+  low_attention:   (i) => i.attention === 'Low',
+  short_time:      (i) => i.time <= 20,
+  young_kids:      (i) => i.youngest_age <= 6,
+  older_kids:      (i) => i.youngest_age >= 8 && i.youngest_age < 18,
+  two_players_only:(i) => i.players > 2,
+};
+
+const ENERGY_MATCH = {
+  Low:    { Low: 15, Medium: 8,  High: 0  },
+  Medium: { Low: 8,  Medium: 15, High: 8  },
+  High:   { Low: 0,  Medium: 8,  High: 15 }
+};
+
+const ATTENTION_MATCH = {
+  Low:    { Low: 10, Medium: 5,  High: 0  },
+  Medium: { Low: 10, Medium: 10, High: 5  },
+  High:   { Low: 5,  Medium: 10, High: 10 }
+};
+
+function scoreGame(game, input) {
+  let score = 0;
+
+  // Player Match (0–25)
+  if (input.players >= game.min_players && input.players <= game.max_players) score += 25;
+  else if (input.players === game.min_players - 1) score += 10;
+
+  // Age Fit (0–20)
+  if (input.youngest_age >= game.min_age) score += 20;
+  else if (input.youngest_age === game.min_age - 1) score += 10;
+
+  // Time Fit (0–15): reward right-sized games, not just "fits within"
+  const idealTime = (game.min_time + game.max_time) / 2;
+  const timeDiff = Math.abs(input.time - idealTime);
+  if (timeDiff <= 10) score += 15;
+  else if (timeDiff <= 20) score += 8;
+
+  // Energy Match (0–15)
+  score += ENERGY_MATCH[input.energy]?.[game.ideal_energy] ?? 0;
+
+  // Attention Match (0–10)
+  score += ATTENTION_MATCH[input.attention]?.[game.attention] ?? 0;
+
+  // Adult Enjoyment (0–10)
+  score += (game.adult_enjoyment / 5) * 10;
+
+  // Kid Independence
+  if (input.youngest_age <= 5) {
+    if (game.kid_independence === 'Independent') score += 5;
+  } else if (input.youngest_age <= 7) {
+    if (game.kid_independence === 'Independent') score += 5;
+    if (game.kid_independence === 'Needs Help') score -= 8;
+  }
+
+  // Effortlessness bonus — friction kills decisions in real life
+  if (game.setup_friction === 'None') score += 5;
+  if (game.equipment === 'None') score += 5;
+
+  // Positive situational boosts: "this is especially right"
+  if (input.energy === 'Low' && input.attention === 'Low' && game.category === 'Verbal') score += 10;
+  if (input.energy === 'High' && game.category === 'Physical') score += 8;
+  if (input.time <= 15 && game.min_time <= 10) score += 8;
+
+  // Mood match bonus
+  if (input.mood && input.mood !== 'any' && game.mood_tags.includes(input.mood)) score += 12;
+
+  // Confidence boost: all 3 core factors align perfectly
+  const playerOk = input.players >= game.min_players && input.players <= game.max_players;
+  const timeOk = input.time >= game.min_time;
+  const energyOk = ENERGY_MATCH[input.energy]?.[game.ideal_energy] === 15;
+  if (playerOk && timeOk && energyOk) score += 10;
+
+  // Setup friction penalty when time is short
+  if (input.time <= 20 && game.setup_friction === 'Medium') score -= 10;
+  if (input.time <= 15 && game.setup_friction === 'Low') score -= 5;
+
+  // Age hard mismatch
+  if (input.youngest_age < game.min_age - 1) score -= 15;
+
+  // Structured avoid_tags — aggressive penalties for situational mismatches
+  for (const tag of game.avoid_tags) {
+    if (AVOID_TAG_RULES[tag]?.(input)) score -= 20;
+  }
+
+  return Math.max(0, score);
+}
+
+function generateReasons(game, input) {
+  // Each candidate reason has a priority (lower = shown first) and a label.
+  // We sort by priority so the most situationally specific reasons surface first.
+  const candidates = [];
+
+  // Priority 1: strong situational fit — the most compelling "why tonight"
+  if (input.energy === 'Low' && input.attention === 'Low' && game.category === 'Verbal')
+    candidates.push({ p: 1, text: 'ideal for low-energy, low-attention moments' });
+
+  if (input.attention === 'Low' && game.attention === 'Low' && game.category !== 'Verbal')
+    candidates.push({ p: 1, text: 'works even when attention is drifting' });
+
+  if (ENERGY_MATCH[input.energy]?.[game.ideal_energy] === 15)
+    candidates.push({ p: 1, text: `good fit for ${input.energy.toLowerCase()} energy` });
+
+  // Priority 2: effortlessness — people underestimate how much friction matters
+  if (game.setup_friction === 'None' && game.equipment === 'None')
+    candidates.push({ p: 2, text: 'zero setup, no materials needed' });
+  else if (game.setup_friction === 'None')
+    candidates.push({ p: 2, text: 'no setup needed' });
+  else if (game.equipment === 'None')
+    candidates.push({ p: 2, text: 'no materials required' });
+
+  // Priority 3: mood match
+  if (input.mood && input.mood !== 'any' && game.mood_tags.includes(input.mood)) {
+    const labels = { laugh: 'a laugh/silly vibe', calm: 'a calm mood', competitive: 'a competitive mood', quick: 'a quick burst' };
+    candidates.push({ p: 3, text: `matches ${labels[input.mood] || input.mood}` });
+  }
+
+  // Priority 4: adult enjoyment signal
+  if (game.adult_enjoyment >= 4)
+    candidates.push({ p: 4, text: 'adults genuinely enjoy this one' });
+
+  // Priority 5: kid independence for young groups
+  if (game.kid_independence === 'Independent' && input.youngest_age <= 7)
+    candidates.push({ p: 5, text: 'kids can play without needing help' });
+
+  // Priority 6: basic compatibility (useful, but least surprising)
+  if (input.players >= game.min_players && input.players <= game.max_players)
+    candidates.push({ p: 6, text: `works with ${input.players} players` });
+
+  const idealTime = (game.min_time + game.max_time) / 2;
+  if (Math.abs(input.time - idealTime) <= 10)
+    candidates.push({ p: 6, text: `right-sized for ${input.time} min` });
+
+  return candidates.sort((a, b) => a.p - b.p).slice(0, 3).map(r => r.text);
+}
+
+// --- UI Logic ---
+
+const REQUIRED = ['players', 'youngest_age', 'time_available', 'energy', 'attention'];
+const selections = { players: null, youngest_age: null, time_available: null, energy: null, attention: null, mood: null };
+
+document.querySelectorAll('.options').forEach(group => {
+  group.querySelectorAll('.option-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      group.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selections[group.id] = btn.dataset.val;
+      checkReady();
+    });
+  });
+});
+
+function checkReady() {
+  const ready = REQUIRED.every(k => selections[k] !== null);
+  document.getElementById('go-btn').disabled = !ready;
+}
+
+document.getElementById('go-btn').addEventListener('click', () => {
+  const input = {
+    players: parseInt(selections.players),
+    youngest_age: parseInt(selections.youngest_age),
+    time: parseInt(selections.time_available),
+    energy: selections.energy,
+    attention: selections.attention,
+    mood: selections.mood || 'any'
+  };
+
+  // Score cleanly — no noise here so bars are honest
+  const scored = GAMES.map(g => ({ game: g, score: scoreGame(g, input) }))
+    .sort((a, b) => b.score - a.score);
+
+  // Deterministic daily seed: same day = same order, different day = different order
+  // Changes every day so the experience feels fresh without feeling random
+  const daySeed = Math.floor(Date.now() / 86400000);
+  function seededRand(seed) {
+    let s = seed;
+    return () => { s = (s * 1664525 + 1013904223) & 0xffffffff; return (s >>> 0) / 0x100000000; };
+  }
+
+  // Shuffle within near-tie clusters (games within 5 pts of the one above them)
+  const rand = seededRand(daySeed);
+  let clusterStart = 0;
+  for (let i = 1; i <= scored.length; i++) {
+    const endOfCluster = i === scored.length || scored[clusterStart].score - scored[i].score > 5;
+    if (endOfCluster) {
+      // Fisher-Yates shuffle within this cluster using the daily seed
+      for (let j = i - 1; j > clusterStart; j--) {
+        const k = clusterStart + Math.floor(rand() * (j - clusterStart + 1));
+        [scored[j], scored[k]] = [scored[k], scored[j]];
+      }
+      clusterStart = i;
+    }
+  }
+
+  // Separation boost: make #1 clearly win if scores are close
+  if (scored.length >= 2 && scored[0].score - scored[1].score < 5) {
+    scored[0].score += 5;
+  }
+
+  // Re-sort top 3 by score so bars always decrease with rank.
+  // The cluster shuffle already determined *which* games appear — this just ensures display consistency.
+  const top = scored.slice(0, 3).sort((a, b) => b.score - a.score);
+  const hasGoodMatch = top.some(r => r.score >= 40);
+
+  const titleEl = document.getElementById('results-title');
+  titleEl.style.display = 'block';
+  titleEl.textContent = hasGoodMatch ? 'Best matches for your moment' : 'No perfect matches — closest options';
+  document.getElementById('no-results').classList.remove('visible');
+
+  ['result-0', 'result-1', 'result-2'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.classList.remove('visible');
+    el.innerHTML = '';
+    if (top[i]) {
+      const { game, score } = top[i];
+      const barWidth = Math.round((Math.min(score, 120) / 120) * 100);
+      const isWeak = score < 40;
+      const rankLabel = ['Best match', '2nd option', '3rd option'][i];
+      el.innerHTML = `
+        <div class="result-header">
+          <div class="result-name">${game.name}</div>
+          <div class="result-rank">${rankLabel}</div>
+        </div>
+        ${isWeak ? '<div class="weak-warning">Partial match — conditions aren\'t ideal</div>' : ''}
+        <div class="result-why">${game.why}</div>
+        <div class="result-reasons">${generateReasons(game, input).map(r => `<span class="reason-pill">✓ ${r}</span>`).join('')}</div>
+        <div class="result-tags">
+          <span class="tag">${game.min_players === game.max_players ? game.min_players + ' players' : game.min_players + '–' + game.max_players + ' players'}</span>
+          <span class="tag">${game.min_time}–${game.max_time} min</span>
+          <span class="tag">${game.category}</span>
+          <span class="tag">Setup: ${game.setup_friction}</span>
+          ${game.equipment === 'None' ? '<span class="tag">No materials needed</span>' : ''}
+        </div>
+        <div class="fit-bar-wrap">
+          <div class="fit-bar-label">Match strength</div>
+          <div class="fit-bar"><div class="fit-bar-fill" style="width:${barWidth}%"></div></div>
+        </div>
+      `;
+      el.classList.add('visible');
+    }
+  });
+
+  document.getElementById('result-0').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+});
+</script>
+</body>
+</html>
