@@ -319,7 +319,20 @@ document.getElementById('go-btn').addEventListener('click', () => {
   if (selections.constraints.has('no_setup')) pool = pool.filter(g => g.setup_friction === 'None');
   if (selections.constraints.has('no_equipment')) pool = pool.filter(g => g.equipment === 'None');
   if (selections.constraints.has('standard_cards')) pool = pool.filter(g => g.equipment === 'Standard Cards');
-  if (pool.length === 0) pool = GAMES; // fallback if constraints eliminate everything
+  if (pool.length === 0) {
+    document.getElementById('results-title').style.display = 'block';
+    document.getElementById('results-title').textContent = 'No games match these limits';
+    ['result-0', 'result-1', 'result-2'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('visible');
+      el.innerHTML = '';
+    });
+    const noResultsEl = document.getElementById('no-results');
+    noResultsEl.textContent = 'No games match your hard limits. Try removing a constraint and searching again.';
+    noResultsEl.classList.add('visible');
+    noResultsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    return;
+  }
 
   const scored = pool.map(g => ({ game: g, score: scoreGame(g, input) }))
     .sort((a, b) => b.score - a.score);
