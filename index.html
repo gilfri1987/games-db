@@ -40,6 +40,15 @@
     .reason-pill { font-size: 0.75rem; padding: 3px 10px; border-radius: 100px; background: #eef6ee; color: #2d6a2d; }
     .no-results { text-align: center; padding: 32px; color: #aaa; max-width: 480px; margin: 0 auto; display: none; }
     .no-results.visible { display: block; }
+    .rules-toggle { margin-top: 12px; border-top: 1px solid #f0f0f0; padding-top: 10px; }
+    .rules-toggle summary { font-size: 0.82rem; color: #888; cursor: pointer; user-select: none; list-style: none; display: flex; align-items: center; gap: 6px; }
+    .rules-toggle summary::before { content: '▸'; font-size: 0.7rem; transition: transform 0.2s; }
+    .rules-toggle[open] summary::before { transform: rotate(90deg); }
+    .rules-toggle summary::-webkit-details-marker { display: none; }
+    .rules-content { margin-top: 10px; }
+    .rules-content ol { padding-left: 18px; margin: 0 0 8px; }
+    .rules-content li { font-size: 0.83rem; color: #555; line-height: 1.5; margin-bottom: 4px; }
+    .rules-win { font-size: 0.82rem; color: #2d6a2d; background: #eef6ee; padding: 6px 10px; border-radius: 8px; }
   </style>
 </head>
 <body>
@@ -401,6 +410,14 @@ document.getElementById('go-btn').addEventListener('click', () => {
           <div class="fit-bar-label">Match strength</div>
           <div class="fit-bar"><div class="fit-bar-fill" style="width:${barWidth}%"></div></div>
         </div>
+        ${game.rules ? `
+        <details class="rules-toggle">
+          <summary>How to play</summary>
+          <div class="rules-content">
+            <ol>${game.rules.play.map(s => `<li>${s}</li>`).join('')}</ol>
+            <div class="rules-win">🏆 ${game.rules.win}</div>
+          </div>
+        </details>` : ''}
       `;
       el.classList.add('visible');
     }
