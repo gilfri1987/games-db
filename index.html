@@ -99,6 +99,13 @@
       <button class="option-btn" data-val="quick">Quick burst</button>
     </div>
 
+    <label class="field-label"><span>⚙️</span> Hard limits? <span class="optional">(optional — pick any)</span></label>
+    <div class="options" id="constraints">
+      <button class="option-btn" data-val="no_setup">No setup required</button>
+      <button class="option-btn" data-val="no_equipment">No materials needed</button>
+      <button class="option-btn" data-val="standard_cards">Standard deck only</button>
+    </div>
+
   </div>
 
   <button class="go-btn" id="go-btn" disabled>Find games →</button>
@@ -180,8 +187,13 @@ function scoreGame(game, input) {
   if (input.energy === 'High' && game.category === 'Physical') score += 8;
   if (input.time <= 15 && game.min_time <= 10) score += 8;
 
-  // Mood match bonus
-  if (input.mood && input.mood !== 'any' && game.mood_tags.includes(input.mood)) score += 12;
+  // Mood match bonus + specificity boost
+  // Games with fewer mood_tags are more "niche" — reward them more when they match
+  if (input.mood && input.mood !== 'any' && game.mood_tags.includes(input.mood)) {
+    score += 12;
+    if (game.mood_tags.length === 1) score += 8;       // perfect specialist match
+    else if (game.mood_tags.length === 2) score += 4;  // reasonably specific
+  }
 
   // Confidence boost: all 3 core factors align perfectly
   const playerOk = input.players >= game.min_players && input.players <= game.max_players;
@@ -200,6 +212,14 @@ function scoreGame(game, input) {
   for (const tag of game.avoid_tags) {
     if (AVOID_TAG_RULES[tag]?.(input)) score -= 20;
   }
+
+  // Generalist tax: games that work for almost everything should yield to specialists
+  // Broadness indicators: no avoid_tags, large player range, many mood_tags
+  const breadth = (game.avoid_tags.length === 0 ? 1 : 0)
+    + ((game.max_players - game.min_players) >= 6 ? 1 : 0)
+    + (game.mood_tags.length >= 3 ? 1 : 0);
+  if (breadth >= 3) score -= 8;
+  else if (breadth >= 2) score -= 4;
 
   return Math.max(0, score);
 }
@@ -255,9 +275,10 @@ function generateReasons(game, input) {
 // --- UI Logic ---
 
 const REQUIRED = ['players', 'youngest_age', 'time_available', 'energy', 'attention'];
-const selections = { players: null, youngest_age: null, time_available: null, energy: null, attention: null, mood: null };
+const selections = { players: null, youngest_age: null, time_available: null, energy: null, attention: null, mood: null, constraints: new Set() };
 
 document.querySelectorAll('.options').forEach(group => {
+  if (group.id === 'constraints') return; // handled separately (multi-select)
   group.querySelectorAll('.option-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       group.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
@@ -265,6 +286,16 @@ document.querySelectorAll('.options').forEach(group => {
       selections[group.id] = btn.dataset.val;
       checkReady();
     });
+  });
+});
+
+// Constraints: multi-select toggle (each button independent)
+document.getElementById('constraints').querySelectorAll('.option-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    btn.classList.toggle('selected');
+    const val = btn.dataset.val;
+    if (selections.constraints.has(val)) selections.constraints.delete(val);
+    else selections.constraints.add(val);
   });
 });
 
@@ -283,41 +314,45 @@ document.getElementById('go-btn').addEventListener('click', () => {
     mood: selections.mood || 'any'
   };
 
-  // Score cleanly — no noise here so bars are honest
-  const scored = GAMES.map(g => ({ game: g, score: scoreGame(g, input) }))
+  // Apply hard constraints to narrow the game pool before scoring
+  let pool = GAMES;
+  if (selections.constraints.has('no_setup')) pool = pool.filter(g => g.setup_friction === 'None');
+  if (selections.constraints.has('no_equipment')) pool = pool.filter(g => g.equipment === 'None');
+  if (selections.constraints.has('standard_cards')) pool = pool.filter(g => g.equipment === 'Standard Cards' || g.equipment === 'None');
+  if (pool.length === 0) pool = GAMES; // fallback if constraints eliminate everything
+
+  const scored = pool.map(g => ({ game: g, score: scoreGame(g, input) }))
     .sort((a, b) => b.score - a.score);
 
-  // Deterministic daily seed: same day = same order, different day = different order
-  // Changes every day so the experience feels fresh without feeling random
+  // Deterministic seeding helpers
   const daySeed = Math.floor(Date.now() / 86400000);
   function seededRand(seed) {
     let s = seed;
     return () => { s = (s * 1664525 + 1013904223) & 0xffffffff; return (s >>> 0) / 0x100000000; };
   }
-
-  // Shuffle within near-tie clusters (games within 5 pts of the one above them)
-  const rand = seededRand(daySeed);
-  let clusterStart = 0;
-  for (let i = 1; i <= scored.length; i++) {
-    const endOfCluster = i === scored.length || scored[clusterStart].score - scored[i].score > 5;
-    if (endOfCluster) {
-      // Fisher-Yates shuffle within this cluster using the daily seed
-      for (let j = i - 1; j > clusterStart; j--) {
-        const k = clusterStart + Math.floor(rand() * (j - clusterStart + 1));
-        [scored[j], scored[k]] = [scored[k], scored[j]];
-      }
-      clusterStart = i;
-    }
+  function hashInputs(inp) {
+    const str = `${inp.players}|${inp.youngest_age}|${inp.time}|${inp.energy}|${inp.attention}|${inp.mood}`;
+    let h = 0;
+    for (let i = 0; i < str.length; i++) { h = Math.imul(31, h) + str.charCodeAt(i) | 0; }
+    return h >>> 0;
   }
 
-  // Separation boost: make #1 clearly win if scores are close
-  if (scored.length >= 2 && scored[0].score - scored[1].score < 5) {
-    scored[0].score += 5;
+  // Slot #1: always the highest scorer — trust the model
+  const top1 = scored[0];
+
+  // Slots #2 and #3: build a candidate pool from games within 8 pts of 2nd place.
+  // Use a scenario-aware seed so the same day + different inputs = different variety.
+  // (Old approach: same-day shuffle of 5pt clusters — caused same games to appear across all scenarios)
+  const secondScore = scored.length > 1 ? scored[1].score : 0;
+  const pool23 = scored.slice(1).filter(s => s.score >= secondScore - 8);
+  const rand23 = seededRand((daySeed ^ hashInputs(input)) >>> 0);
+  for (let i = pool23.length - 1; i > 0; i--) {
+    const j = Math.floor(rand23() * (i + 1));
+    [pool23[i], pool23[j]] = [pool23[j], pool23[i]];
   }
 
-  // Re-sort top 3 by score so bars always decrease with rank.
-  // The cluster shuffle already determined *which* games appear — this just ensures display consistency.
-  const top = scored.slice(0, 3).sort((a, b) => b.score - a.score);
+  // Final top 3: sorted by score so match bars always decrease with rank
+  const top = [top1, ...pool23.slice(0, 2)].sort((a, b) => b.score - a.score);
   const hasGoodMatch = top.some(r => r.score >= 40);
 
   const titleEl = document.getElementById('results-title');
