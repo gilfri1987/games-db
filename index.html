@@ -318,7 +318,7 @@ document.getElementById('go-btn').addEventListener('click', () => {
   let pool = GAMES;
   if (selections.constraints.has('no_setup')) pool = pool.filter(g => g.setup_friction === 'None');
   if (selections.constraints.has('no_equipment')) pool = pool.filter(g => g.equipment === 'None');
-  if (selections.constraints.has('standard_cards')) pool = pool.filter(g => g.equipment === 'Standard Cards' || g.equipment === 'None');
+  if (selections.constraints.has('standard_cards')) pool = pool.filter(g => g.equipment === 'Standard Cards');
   if (pool.length === 0) pool = GAMES; // fallback if constraints eliminate everything
 
   const scored = pool.map(g => ({ game: g, score: scoreGame(g, input) }))
