@@ -136,6 +136,7 @@ let allScored = [];       // full ranked list after scoring
 let shownGames = new Set(); // names of games currently rendered
 let totalShown = 0;       // count of rendered cards
 let currentInput = null;  // last input used (for Show More + Surprise Me)
+let surpriseMode = false; // affects card labels after Surprise Me
 
 fetch('games.json')
   .then(r => r.json())
@@ -277,7 +278,9 @@ function appendCards(items, input) {
   const container = document.getElementById('results-container');
   items.forEach(({ game, score }) => {
     const isFirst = totalShown === 0;
-    const label = totalShown === 0 ? 'Best match'
+    const label = surpriseMode && totalShown === 0 ? '🎲 Tonight\'s pick'
+                : surpriseMode ? 'Also a great fit'
+                : totalShown === 0 ? 'Best match'
                 : totalShown === 1 ? '2nd option'
                 : totalShown === 2 ? '3rd option'
                 : `#${totalShown + 1} option`;
@@ -353,6 +356,7 @@ document.getElementById('go-btn').addEventListener('click', () => {
     mood: selections.mood || 'any'
   };
   currentInput = input;
+  surpriseMode = false;
 
   const pool = buildPool(input);
   if (pool.length === 0) {
@@ -419,6 +423,7 @@ document.getElementById('surprise-btn').addEventListener('click', () => {
     mood: selections.mood || 'any'
   };
   currentInput = input;
+  surpriseMode = true;
 
   const pool = buildPool(input);
   if (pool.length === 0) {
