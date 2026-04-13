@@ -49,6 +49,11 @@
     .rules-content ol { padding-left: 18px; margin: 0 0 8px; }
     .rules-content li { font-size: 0.83rem; color: #555; line-height: 1.5; margin-bottom: 4px; }
     .rules-win { font-size: 0.82rem; color: #2d6a2d; background: #eef6ee; padding: 6px 10px; border-radius: 8px; }
+    .show-more-btn { width: 100%; padding: 13px; background: white; color: #1a1a1a; border: 2px solid #1a1a1a; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.15s; max-width: 480px; display: none; margin: 0 auto 12px; }
+    .show-more-btn:hover { background: #f5f5f5; }
+    .surprise-btn { width: 100%; padding: 13px; background: white; color: #555; border: 2px solid #ddd; border-radius: 12px; font-size: 0.95rem; font-weight: 500; cursor: pointer; transition: all 0.15s; max-width: 480px; display: block; margin: -20px auto 32px; }
+    .surprise-btn:hover:not(:disabled) { border-color: #aaa; color: #333; }
+    .surprise-btn:disabled { opacity: 0.35; cursor: default; }
   </style>
 </head>
 <body>
@@ -118,15 +123,20 @@
   </div>
 
   <button class="go-btn" id="go-btn" disabled>Find games →</button>
+  <button class="surprise-btn" id="surprise-btn" disabled>🎲 Surprise me</button>
 
   <div class="results-title" id="results-title" style="display:none"></div>
-  <div class="result-card rank-1" id="result-0"></div>
-  <div class="result-card" id="result-1"></div>
-  <div class="result-card" id="result-2"></div>
+  <div id="results-container"></div>
+  <button class="show-more-btn" id="show-more-btn">Show more →</button>
   <div class="no-results" id="no-results">No great matches found. Try adjusting your filters.</div>
 
 <script>
 let GAMES = [];
+let allScored = [];       // full ranked list after scoring
+let shownGames = new Set(); // names of games currently rendered
+let totalShown = 0;       // count of rendered cards
+let currentInput = null;  // last input used (for Show More + Surprise Me)
+
 fetch('games.json')
   .then(r => r.json())
   .then(data => { GAMES = data; })
@@ -155,130 +165,150 @@ const ATTENTION_MATCH = {
 
 function scoreGame(game, input) {
   let score = 0;
-
-  // Player Match (0–25)
   if (input.players >= game.min_players && input.players <= game.max_players) score += 25;
   else if (input.players === game.min_players - 1) score += 10;
-
-  // Age Fit (0–20)
   if (input.youngest_age >= game.min_age) score += 20;
   else if (input.youngest_age === game.min_age - 1) score += 10;
-
-  // Time Fit (0–15): reward right-sized games, not just "fits within"
   const idealTime = (game.min_time + game.max_time) / 2;
   const timeDiff = Math.abs(input.time - idealTime);
   if (timeDiff <= 10) score += 15;
   else if (timeDiff <= 20) score += 8;
-
-  // Energy Match (0–15)
   score += ENERGY_MATCH[input.energy]?.[game.ideal_energy] ?? 0;
-
-  // Attention Match (0–10)
   score += ATTENTION_MATCH[input.attention]?.[game.attention] ?? 0;
-
-  // Adult Enjoyment (0–10)
   score += (game.adult_enjoyment / 5) * 10;
-
-  // Kid Independence
   if (input.youngest_age <= 5) {
     if (game.kid_independence === 'Independent') score += 5;
   } else if (input.youngest_age <= 7) {
     if (game.kid_independence === 'Independent') score += 5;
     if (game.kid_independence === 'Needs Help') score -= 8;
   }
-
-  // Effortlessness bonus — friction kills decisions in real life
   if (game.setup_friction === 'None') score += 5;
   if (game.equipment === 'None') score += 5;
-
-  // Positive situational boosts: "this is especially right"
   if (input.energy === 'Low' && input.attention === 'Low' && game.category === 'Verbal') score += 10;
   if (input.energy === 'High' && game.category === 'Physical') score += 8;
   if (input.time <= 15 && game.min_time <= 10) score += 8;
-
-  // Mood match bonus + specificity boost
-  // Games with fewer mood_tags are more "niche" — reward them more when they match
   if (input.mood && input.mood !== 'any' && game.mood_tags.includes(input.mood)) {
     score += 12;
-    if (game.mood_tags.length === 1) score += 8;       // perfect specialist match
-    else if (game.mood_tags.length === 2) score += 4;  // reasonably specific
+    if (game.mood_tags.length === 1) score += 8;
+    else if (game.mood_tags.length === 2) score += 4;
   }
-
-  // Confidence boost: all 3 core factors align perfectly
   const playerOk = input.players >= game.min_players && input.players <= game.max_players;
   const timeOk = input.time >= game.min_time;
   const energyOk = ENERGY_MATCH[input.energy]?.[game.ideal_energy] === 15;
   if (playerOk && timeOk && energyOk) score += 10;
-
-  // Setup friction penalty when time is short
   if (input.time <= 20 && game.setup_friction === 'Medium') score -= 10;
   if (input.time <= 15 && game.setup_friction === 'Low') score -= 5;
-
-  // Age hard mismatch
   if (input.youngest_age < game.min_age - 1) score -= 15;
-
-  // Structured avoid_tags — aggressive penalties for situational mismatches
   for (const tag of game.avoid_tags) {
     if (AVOID_TAG_RULES[tag]?.(input)) score -= 20;
   }
-
-  // Generalist tax: games that work for almost everything should yield to specialists
-  // Broadness indicators: no avoid_tags, large player range, many mood_tags
   const breadth = (game.avoid_tags.length === 0 ? 1 : 0)
     + ((game.max_players - game.min_players) >= 6 ? 1 : 0)
     + (game.mood_tags.length >= 3 ? 1 : 0);
   if (breadth >= 3) score -= 8;
   else if (breadth >= 2) score -= 4;
-
   return Math.max(0, score);
 }
 
 function generateReasons(game, input) {
-  // Each candidate reason has a priority (lower = shown first) and a label.
-  // We sort by priority so the most situationally specific reasons surface first.
   const candidates = [];
-
-  // Priority 1: strong situational fit — the most compelling "why tonight"
   if (input.energy === 'Low' && input.attention === 'Low' && game.category === 'Verbal')
     candidates.push({ p: 1, text: 'ideal for low-energy, low-attention moments' });
-
   if (input.attention === 'Low' && game.attention === 'Low' && game.category !== 'Verbal')
     candidates.push({ p: 1, text: 'works even when attention is drifting' });
-
   if (ENERGY_MATCH[input.energy]?.[game.ideal_energy] === 15)
     candidates.push({ p: 1, text: `good fit for ${input.energy.toLowerCase()} energy` });
-
-  // Priority 2: effortlessness — people underestimate how much friction matters
   if (game.setup_friction === 'None' && game.equipment === 'None')
     candidates.push({ p: 2, text: 'zero setup, no materials needed' });
   else if (game.setup_friction === 'None')
     candidates.push({ p: 2, text: 'no setup needed' });
   else if (game.equipment === 'None')
     candidates.push({ p: 2, text: 'no materials required' });
-
-  // Priority 3: mood match
   if (input.mood && input.mood !== 'any' && game.mood_tags.includes(input.mood)) {
     const labels = { laugh: 'a laugh/silly vibe', calm: 'a calm mood', competitive: 'a competitive mood', quick: 'a quick burst' };
     candidates.push({ p: 3, text: `matches ${labels[input.mood] || input.mood}` });
   }
-
-  // Priority 4: adult enjoyment signal
   if (game.adult_enjoyment >= 4)
     candidates.push({ p: 4, text: 'adults genuinely enjoy this one' });
-
-  // Priority 5: kid independence for young groups
   if (game.kid_independence === 'Independent' && input.youngest_age <= 7)
     candidates.push({ p: 5, text: 'kids can play without needing help' });
-
-  // Priority 6: basic compatibility (useful, but least surprising)
   if (input.players >= game.min_players && input.players <= game.max_players)
     candidates.push({ p: 6, text: `works with ${input.players} players` });
-
   const idealTime = (game.min_time + game.max_time) / 2;
   if (Math.abs(input.time - idealTime) <= 10)
     candidates.push({ p: 6, text: `right-sized for ${input.time} min` });
-
   return candidates.sort((a, b) => a.p - b.p).slice(0, 3).map(r => r.text);
+}
+
+function buildCardHTML(game, score, rankLabel, input) {
+  const barWidth = Math.round((Math.min(score, 120) / 120) * 100);
+  const isWeak = score < 40;
+  return `
+    <div class="result-header">
+      <div class="result-name">${game.name}</div>
+      <div class="result-rank">${rankLabel}</div>
+    </div>
+    ${isWeak ? '<div class="weak-warning">Partial match — conditions aren\'t ideal</div>' : ''}
+    <div class="result-why">${game.why}</div>
+    <div class="result-reasons">${generateReasons(game, input).map(r => `<span class="reason-pill">✓ ${r}</span>`).join('')}</div>
+    <div class="result-tags">
+      <span class="tag">${game.min_players === game.max_players ? game.min_players + ' players' : game.min_players + '–' + game.max_players + ' players'}</span>
+      <span class="tag">${game.min_time}–${game.max_time} min</span>
+      <span class="tag">${game.category}</span>
+      <span class="tag">Setup: ${game.setup_friction}</span>
+      ${game.equipment === 'None' ? '<span class="tag">No materials needed</span>' : ''}
+    </div>
+    <div class="fit-bar-wrap">
+      <div class="fit-bar-label">Match strength</div>
+      <div class="fit-bar"><div class="fit-bar-fill" style="width:${barWidth}%"></div></div>
+    </div>
+    ${game.rules ? `
+    <details class="rules-toggle">
+      <summary>How to play</summary>
+      <div class="rules-content">
+        <ol>${game.rules.play.map(s => `<li>${s}</li>`).join('')}</ol>
+        <div class="rules-win">🏆 ${game.rules.win}</div>
+      </div>
+    </details>` : ''}
+  `;
+}
+
+function appendCards(items, input) {
+  const container = document.getElementById('results-container');
+  items.forEach(({ game, score }) => {
+    const isFirst = totalShown === 0;
+    const label = totalShown === 0 ? 'Best match'
+                : totalShown === 1 ? '2nd option'
+                : totalShown === 2 ? '3rd option'
+                : `#${totalShown + 1} option`;
+    const el = document.createElement('div');
+    el.className = `result-card visible${isFirst ? ' rank-1' : ''}`;
+    el.innerHTML = buildCardHTML(game, score, label, input);
+    container.appendChild(el);
+    shownGames.add(game.name);
+    totalShown++;
+  });
+  updateShowMoreButton();
+}
+
+function updateShowMoreButton() {
+  const btn = document.getElementById('show-more-btn');
+  const remaining = allScored.filter(s => !shownGames.has(s.game.name) && s.score > 0);
+  if (remaining.length > 0) {
+    const next = Math.min(remaining.length, 3);
+    btn.textContent = `Show ${next} more →`;
+    btn.style.display = 'block';
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+function buildPool(input) {
+  let pool = GAMES;
+  if (selections.constraints.has('no_setup')) pool = pool.filter(g => g.setup_friction === 'None');
+  if (selections.constraints.has('no_equipment')) pool = pool.filter(g => g.equipment === 'None');
+  if (selections.constraints.has('standard_cards')) pool = pool.filter(g => g.equipment === 'Standard Cards');
+  return pool;
 }
 
 // --- UI Logic ---
@@ -287,7 +317,7 @@ const REQUIRED = ['players', 'youngest_age', 'time_available', 'energy', 'attent
 const selections = { players: null, youngest_age: null, time_available: null, energy: null, attention: null, mood: null, constraints: new Set() };
 
 document.querySelectorAll('.options').forEach(group => {
-  if (group.id === 'constraints') return; // handled separately (multi-select)
+  if (group.id === 'constraints') return;
   group.querySelectorAll('.option-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       group.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
@@ -298,7 +328,6 @@ document.querySelectorAll('.options').forEach(group => {
   });
 });
 
-// Constraints: multi-select toggle (each button independent)
 document.getElementById('constraints').querySelectorAll('.option-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     btn.classList.toggle('selected');
@@ -311,6 +340,7 @@ document.getElementById('constraints').querySelectorAll('.option-btn').forEach(b
 function checkReady() {
   const ready = REQUIRED.every(k => selections[k] !== null);
   document.getElementById('go-btn').disabled = !ready;
+  document.getElementById('surprise-btn').disabled = !ready;
 }
 
 document.getElementById('go-btn').addEventListener('click', () => {
@@ -322,31 +352,25 @@ document.getElementById('go-btn').addEventListener('click', () => {
     attention: selections.attention,
     mood: selections.mood || 'any'
   };
+  currentInput = input;
 
-  // Apply hard constraints to narrow the game pool before scoring
-  let pool = GAMES;
-  if (selections.constraints.has('no_setup')) pool = pool.filter(g => g.setup_friction === 'None');
-  if (selections.constraints.has('no_equipment')) pool = pool.filter(g => g.equipment === 'None');
-  if (selections.constraints.has('standard_cards')) pool = pool.filter(g => g.equipment === 'Standard Cards');
+  const pool = buildPool(input);
   if (pool.length === 0) {
-    document.getElementById('results-title').style.display = 'block';
-    document.getElementById('results-title').textContent = 'No games match these limits';
-    ['result-0', 'result-1', 'result-2'].forEach(id => {
-      const el = document.getElementById(id);
-      el.classList.remove('visible');
-      el.innerHTML = '';
-    });
-    const noResultsEl = document.getElementById('no-results');
-    noResultsEl.textContent = 'No games match your hard limits. Try removing a constraint and searching again.';
-    noResultsEl.classList.add('visible');
-    noResultsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    showNoResults('No games match your hard limits. Try removing a constraint and searching again.');
     return;
   }
 
   const scored = pool.map(g => ({ game: g, score: scoreGame(g, input) }))
     .sort((a, b) => b.score - a.score);
+  allScored = scored;
 
-  // Deterministic seeding helpers
+  // Reset display state
+  document.getElementById('results-container').innerHTML = '';
+  document.getElementById('show-more-btn').style.display = 'none';
+  shownGames = new Set();
+  totalShown = 0;
+
+  // Deterministic seeding for slot diversity
   const daySeed = Math.floor(Date.now() / 86400000);
   function seededRand(seed) {
     let s = seed;
@@ -359,12 +383,8 @@ document.getElementById('go-btn').addEventListener('click', () => {
     return h >>> 0;
   }
 
-  // Slot #1: always the highest scorer — trust the model
+  // Slot 1: highest scorer. Slots 2–3: shuffled from near-top pool for variety.
   const top1 = scored[0];
-
-  // Slots #2 and #3: build a candidate pool from games within 8 pts of 2nd place.
-  // Use a scenario-aware seed so the same day + different inputs = different variety.
-  // (Old approach: same-day shuffle of 5pt clusters — caused same games to appear across all scenarios)
   const secondScore = scored.length > 1 ? scored[1].score : 0;
   const pool23 = scored.slice(1).filter(s => s.score >= secondScore - 8);
   const rand23 = seededRand((daySeed ^ hashInputs(input)) >>> 0);
@@ -372,59 +392,76 @@ document.getElementById('go-btn').addEventListener('click', () => {
     const j = Math.floor(rand23() * (i + 1));
     [pool23[i], pool23[j]] = [pool23[j], pool23[i]];
   }
+  const top3 = [top1, ...pool23.slice(0, 2)].sort((a, b) => b.score - a.score);
 
-  // Final top 3: sorted by score so match bars always decrease with rank
-  const top = [top1, ...pool23.slice(0, 2)].sort((a, b) => b.score - a.score);
-  const hasGoodMatch = top.some(r => r.score >= 40);
-
+  const hasGoodMatch = top3.some(r => r.score >= 40);
   const titleEl = document.getElementById('results-title');
   titleEl.style.display = 'block';
   titleEl.textContent = hasGoodMatch ? 'Best matches for your moment' : 'No perfect matches — closest options';
   document.getElementById('no-results').classList.remove('visible');
 
-  ['result-0', 'result-1', 'result-2'].forEach((id, i) => {
-    const el = document.getElementById(id);
-    el.classList.remove('visible');
-    el.innerHTML = '';
-    if (top[i]) {
-      const { game, score } = top[i];
-      const barWidth = Math.round((Math.min(score, 120) / 120) * 100);
-      const isWeak = score < 40;
-      const rankLabel = ['Best match', '2nd option', '3rd option'][i];
-      el.innerHTML = `
-        <div class="result-header">
-          <div class="result-name">${game.name}</div>
-          <div class="result-rank">${rankLabel}</div>
-        </div>
-        ${isWeak ? '<div class="weak-warning">Partial match — conditions aren\'t ideal</div>' : ''}
-        <div class="result-why">${game.why}</div>
-        <div class="result-reasons">${generateReasons(game, input).map(r => `<span class="reason-pill">✓ ${r}</span>`).join('')}</div>
-        <div class="result-tags">
-          <span class="tag">${game.min_players === game.max_players ? game.min_players + ' players' : game.min_players + '–' + game.max_players + ' players'}</span>
-          <span class="tag">${game.min_time}–${game.max_time} min</span>
-          <span class="tag">${game.category}</span>
-          <span class="tag">Setup: ${game.setup_friction}</span>
-          ${game.equipment === 'None' ? '<span class="tag">No materials needed</span>' : ''}
-        </div>
-        <div class="fit-bar-wrap">
-          <div class="fit-bar-label">Match strength</div>
-          <div class="fit-bar"><div class="fit-bar-fill" style="width:${barWidth}%"></div></div>
-        </div>
-        ${game.rules ? `
-        <details class="rules-toggle">
-          <summary>How to play</summary>
-          <div class="rules-content">
-            <ol>${game.rules.play.map(s => `<li>${s}</li>`).join('')}</ol>
-            <div class="rules-win">🏆 ${game.rules.win}</div>
-          </div>
-        </details>` : ''}
-      `;
-      el.classList.add('visible');
-    }
-  });
-
-  document.getElementById('result-0').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  appendCards(top3, input);
+  document.getElementById('results-container').firstChild?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 });
+
+document.getElementById('show-more-btn').addEventListener('click', () => {
+  const remaining = allScored.filter(s => !shownGames.has(s.game.name) && s.score > 0);
+  appendCards(remaining.slice(0, 3), currentInput);
+});
+
+document.getElementById('surprise-btn').addEventListener('click', () => {
+  const input = {
+    players: parseInt(selections.players),
+    youngest_age: parseInt(selections.youngest_age),
+    time: parseInt(selections.time_available),
+    energy: selections.energy,
+    attention: selections.attention,
+    mood: selections.mood || 'any'
+  };
+  currentInput = input;
+
+  const pool = buildPool(input);
+  if (pool.length === 0) {
+    showNoResults('No games match your hard limits. Try removing a constraint.');
+    return;
+  }
+
+  const scored = pool.map(g => ({ game: g, score: scoreGame(g, input) }))
+    .sort((a, b) => b.score - a.score);
+  allScored = scored;
+
+  // Pick a random game from top 15 scoring games
+  const candidates = scored.filter(s => s.score > 0).slice(0, 15);
+  if (candidates.length === 0) { showNoResults('No matches found.'); return; }
+  const pick = candidates[Math.floor(Math.random() * candidates.length)];
+
+  // Reset and show single surprise card
+  document.getElementById('results-container').innerHTML = '';
+  document.getElementById('show-more-btn').style.display = 'none';
+  shownGames = new Set();
+  totalShown = 0;
+
+  document.getElementById('results-title').style.display = 'block';
+  document.getElementById('results-title').textContent = '🎲 Here\'s one for tonight';
+  document.getElementById('no-results').classList.remove('visible');
+
+  appendCards([pick], input);
+  document.getElementById('results-container').firstChild?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  // After surprise, update show-more to let user see the rest
+  shownGames.add(pick.game.name); // already added by appendCards, just ensure
+  updateShowMoreButton();
+});
+
+function showNoResults(msg) {
+  document.getElementById('results-title').style.display = 'block';
+  document.getElementById('results-title').textContent = 'No matches found';
+  document.getElementById('results-container').innerHTML = '';
+  document.getElementById('show-more-btn').style.display = 'none';
+  const el = document.getElementById('no-results');
+  el.textContent = msg;
+  el.classList.add('visible');
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
 </script>
 </body>
 </html>
