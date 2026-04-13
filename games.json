@@ -256,5 +256,54 @@
       "play": ["Agree on a category (e.g. 'animals', 'countries', 'foods', 'movie titles')", "First player names something starting with A, next player says B, and so on around the group", "If a player can't name something within 5 seconds, they're out — the next player tries the same letter", "Continue through to Z"],
       "win": "Player who contributes the most letters wins — or play cooperatively and see how far the group gets together."
     }
-  }
+  },
+
+  { "name": "Tag", "category": "Physical", "min_players": 2, "max_players": 20, "min_age": 4, "min_time": 10, "max_time": 30, "ideal_energy": "High", "attention": "Low", "adult_enjoyment": 2, "kid_independence": "Independent", "setup_friction": "None", "equipment": "None", "avoid_tags": ["low_energy", "older_kids"], "mood_tags": ["competitive", "laugh"], "why": "The foundational outdoor game — one person chases, everyone runs. Nothing to explain, starts immediately, burns energy in minutes",
+    "rules": {
+      "play": ["One player is 'It' — everyone else runs", "It chases other players and tags someone by touching them", "The tagged player immediately becomes the new It", "No tagging back the player who just tagged you — count to 3 before they can be It again"],
+      "win": "No formal winner — play until everyone's tired or someone reaches a set time limit."
+    }
+  },
+  { "name": "Freeze Tag", "category": "Physical", "min_players": 4, "max_players": 20, "min_age": 5, "min_time": 10, "max_time": 30, "ideal_energy": "High", "attention": "Low", "adult_enjoyment": 2, "kid_independence": "Independent", "setup_friction": "None", "equipment": "None", "avoid_tags": ["low_energy"], "mood_tags": ["competitive", "laugh"], "why": "Tagged players freeze in place until a teammate crawls under their legs to free them — adds teamwork and rescue drama to basic tag",
+    "rules": {
+      "play": ["One (or two for large groups) player is It", "When It tags someone, that player freezes with legs apart", "Frozen players can be freed when a teammate crawls between their legs or tags them", "It wins by freezing all players simultaneously"],
+      "win": "It wins by freezing everyone at once. Rotate It after each round."
+    }
+  },
+  { "name": "Hide and Seek", "category": "Physical", "min_players": 2, "max_players": 15, "min_age": 4, "min_time": 10, "max_time": 30, "ideal_energy": "Medium", "attention": "Low", "adult_enjoyment": 2, "kid_independence": "Independent", "setup_friction": "None", "equipment": "None", "avoid_tags": ["older_kids"], "mood_tags": ["laugh", "calm"], "why": "Count to 20, find everyone — hiding spots get creative fast. Works indoors or out; young kids can run it entirely without adults",
+    "rules": {
+      "play": ["One player is the Seeker — they stand at a base, cover eyes, and count loudly to 20 (or 50 for big spaces)", "All other players hide before counting ends. Seeker shouts 'Ready or not, here I come!'", "When found, a player races back to base — if they touch base before being tagged, they're safe", "Seeker tags found players who didn't make it back"],
+      "win": "Last player found wins and becomes the next Seeker. First player found is Seeker if you don't want to wait."
+    }
+  },
+  { "name": "Sardines", "category": "Physical", "min_players": 4, "max_players": 15, "min_age": 7, "min_time": 15, "max_time": 30, "ideal_energy": "Medium", "attention": "Medium", "adult_enjoyment": 3, "kid_independence": "Independent", "setup_friction": "None", "equipment": "None", "avoid_tags": ["young_kids"], "mood_tags": ["laugh", "calm"], "why": "Reverse hide and seek — one person hides while everyone searches solo, and finders silently squeeze in with them. The pile growing in one spot is reliably hilarious",
+    "rules": {
+      "play": ["One player hides while everyone else counts to 30 with eyes closed at a central spot", "Players then spread out alone to search — no groups, no collaborating", "When you find the hider, silently squeeze into their hiding spot with them and wait", "Continue until only one searcher remains wandering"],
+      "win": "Last person to find the group loses and is the hider next round."
+    }
+  },
+  { "name": "Red Light Green Light", "category": "Physical", "min_players": 3, "max_players": 20, "min_age": 4, "min_time": 5, "max_time": 15, "ideal_energy": "High", "attention": "Low", "adult_enjoyment": 2, "kid_independence": "Independent", "setup_friction": "None", "equipment": "None", "avoid_tags": ["low_energy", "older_kids"], "mood_tags": ["laugh", "quick"], "why": "Race toward the Caller while freezing on 'Red Light' — wobbling stops and last-second dives make it funnier every round",
+    "rules": {
+      "play": ["One player is the Caller and stands at one end. Everyone else lines up at the far end.", "Caller turns away and shouts 'Green Light' — players race forward", "Caller shouts 'Red Light' and turns around — everyone must freeze instantly", "Anyone still moving when the Caller turns around is sent back to the start"],
+      "win": "First player to reach and tag the Caller wins and becomes the new Caller."
+    }
+  },
+  { "name": "Duck Duck Goose", "category": "Physical", "min_players": 4, "max_players": 15, "min_age": 3, "min_time": 5, "max_time": 15, "ideal_energy": "High", "attention": "Low", "adult_enjoyment": 1, "kid_independence": "Independent", "setup_friction": "None", "equipment": "None", "avoid_tags": ["low_energy", "older_kids"], "mood_tags": ["laugh", "quick"], "why": "Classic circle game for the youngest — the anticipation before 'Goose!' is the whole experience. Ages 3-6 run it independently with zero help",
+    "rules": {
+      "play": ["Players sit in a circle. One player walks around the outside, lightly tapping heads one by one", "They say 'Duck' for each tap — then choose someone and say 'Goose!'", "The Goose jumps up and chases the tapper around the circle", "The tapper tries to sit in the Goose's empty spot before being tagged"],
+      "win": "If the tapper sits safely, the Goose is the new tapper. If tagged before sitting, the tapper goes again."
+    }
+  },
+  { "name": "Marco Polo", "category": "Physical", "min_players": 3, "max_players": 12, "min_age": 6, "min_time": 10, "max_time": 25, "ideal_energy": "High", "attention": "Low", "adult_enjoyment": 2, "kid_independence": "Independent", "setup_friction": "None", "equipment": "None", "avoid_tags": ["low_energy", "older_kids"], "mood_tags": ["laugh", "quick"], "why": "Eyes closed, calling 'Marco!' to chase 'Polo!' responses — classic pool game that works in any open space, endlessly chaotic and fun",
+    "rules": {
+      "play": ["One player is Marco — eyes must stay closed at all times. Count to 10 to start.", "Marco moves around trying to tag other players. At any point, call 'Marco!' — all others must immediately respond 'Polo!'", "Other players dodge Marco using sound; they can move anywhere in the agreed play area", "If a player leaves the play area entirely, anyone can shout 'Fish out of water!' — that player is out"],
+      "win": "First player tagged by Marco becomes the new Marco."
+    }
+  },
+  { "name": "Four Square", "category": "Physical", "min_players": 4, "max_players": 10, "min_age": 6, "min_time": 15, "max_time": 40, "ideal_energy": "High", "attention": "Medium", "adult_enjoyment": 3, "kid_independence": "Independent", "setup_friction": "Low", "equipment": "Other", "avoid_tags": ["low_energy"], "mood_tags": ["competitive", "laugh"], "why": "Bounce a ball between four chalked squares — serve from the King square, get knocked out, move to the back of the line. Self-regulating with endless drama" },
+  { "name": "Kickball", "category": "Physical", "min_players": 6, "max_players": 20, "min_age": 6, "min_time": 30, "max_time": 60, "ideal_energy": "High", "attention": "Medium", "adult_enjoyment": 3, "kid_independence": "Independent", "setup_friction": "Low", "equipment": "Other", "avoid_tags": ["low_energy", "short_time"], "mood_tags": ["competitive", "laugh"], "why": "Baseball rules but you kick a rubber ball — everyone can participate, the skill gap between adults and kids narrows fast, and it's reliably nostalgic" },
+  { "name": "Hopscotch", "category": "Physical", "min_players": 1, "max_players": 8, "min_age": 4, "min_time": 10, "max_time": 25, "ideal_energy": "Medium", "attention": "Low", "adult_enjoyment": 1, "kid_independence": "Independent", "setup_friction": "Low", "equipment": "Other", "avoid_tags": ["older_kids"], "mood_tags": ["calm", "competitive"], "why": "Draw numbered squares, toss a marker, hop through skipping that square — kids love drawing the course as much as playing it" },
+  { "name": "Tug of War", "category": "Physical", "min_players": 4, "max_players": 30, "min_age": 6, "min_time": 5, "max_time": 20, "ideal_energy": "High", "attention": "Low", "adult_enjoyment": 3, "kid_independence": "Independent", "setup_friction": "None", "equipment": "Other", "avoid_tags": ["low_energy"], "mood_tags": ["competitive", "laugh"], "why": "Two teams, one rope, pull — weight strategies and surprise upsets make it more interesting than it looks, and the rematch is always immediate" },
+  { "name": "Horseshoes", "category": "Physical", "min_players": 2, "max_players": 4, "min_age": 8, "min_time": 20, "max_time": 40, "ideal_energy": "Medium", "attention": "Low", "adult_enjoyment": 4, "kid_independence": "Independent", "setup_friction": "Low", "equipment": "Other", "avoid_tags": ["young_kids"], "mood_tags": ["competitive", "calm"], "why": "Toss horseshoes to ring a stake 40 feet away — the clang of a ringer is deeply satisfying, pace is relaxed, adults take it more seriously than they expect" },
+  { "name": "Disc Golf", "category": "Physical", "min_players": 2, "max_players": 8, "min_age": 8, "min_time": 30, "max_time": 90, "ideal_energy": "Medium", "attention": "Low", "adult_enjoyment": 4, "kid_independence": "Semi", "setup_friction": "Low", "equipment": "Other", "avoid_tags": ["young_kids", "short_time"], "mood_tags": ["competitive", "calm"], "why": "Design a course through any park using trees and landmarks as targets, toss a frisbee to reach each in fewest throws — adaptable, genuinely competitive for adults" }
 ]
