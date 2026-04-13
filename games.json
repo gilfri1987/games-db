@@ -206,5 +206,55 @@
   { "name": "Pass the Pigs", "category": "Board", "min_players": 2, "max_players": 8, "min_age": 7, "min_time": 15, "max_time": 30, "ideal_energy": "Low", "attention": "Low", "adult_enjoyment": 3, "kid_independence": "Independent", "setup_friction": "None", "equipment": "Other", "avoid_tags": ["young_kids"], "mood_tags": ["laugh", "competitive"], "why": "Toss rubber pigs and score based on how they land — the absurdity of tracking pig positions is the whole point. Simple push-your-luck with great novelty" },
   { "name": "Zombie Dice", "category": "Board", "min_players": 2, "max_players": 8, "min_age": 10, "min_time": 15, "max_time": 30, "ideal_energy": "Low", "attention": "Low", "adult_enjoyment": 3, "kid_independence": "Semi", "setup_friction": "None", "equipment": "Other", "avoid_tags": ["young_kids"], "mood_tags": ["laugh", "competitive", "quick"], "why": "Draw dice from a cup and push your luck eating brains — three shotgun blasts and you lose everything. Fast, tense, and the theme lands with all ages" },
   { "name": "Shut the Box", "category": "Board", "min_players": 1, "max_players": 4, "min_age": 8, "min_time": 10, "max_time": 20, "ideal_energy": "Low", "attention": "Medium", "adult_enjoyment": 3, "kid_independence": "Semi", "setup_friction": "None", "equipment": "Other", "avoid_tags": ["young_kids"], "mood_tags": ["competitive", "calm", "quick"], "why": "Roll dice and flip down number tiles that sum to your roll — solo puzzle or competitive race. Deeply satisfying when the last tile clicks shut" },
-  { "name": "Pig", "category": "Board", "min_players": 2, "max_players": 8, "min_age": 6, "min_time": 10, "max_time": 20, "ideal_energy": "Low", "attention": "Low", "adult_enjoyment": 2, "kid_independence": "Independent", "setup_friction": "None", "equipment": "Other", "avoid_tags": [], "mood_tags": ["quick", "competitive"], "why": "The purest push-your-luck game — roll and bank points, or keep going for more but risk losing your turn on a 1. Teaches risk-reward instinctively" }
+  { "name": "Pig", "category": "Board", "min_players": 2, "max_players": 8, "min_age": 6, "min_time": 10, "max_time": 20, "ideal_energy": "Low", "attention": "Low", "adult_enjoyment": 2, "kid_independence": "Independent", "setup_friction": "None", "equipment": "Other", "avoid_tags": [], "mood_tags": ["quick", "competitive"], "why": "The purest push-your-luck game — roll and bank points, or keep going for more but risk losing your turn on a 1. Teaches risk-reward instinctively" },
+
+  { "name": "Two Truths and a Lie", "category": "Verbal", "min_players": 3, "max_players": 20, "min_age": 9, "min_time": 10, "max_time": 30, "ideal_energy": "Low", "attention": "Low", "adult_enjoyment": 4, "kid_independence": "Independent", "setup_friction": "None", "equipment": "None", "avoid_tags": ["young_kids"], "mood_tags": ["laugh", "calm"], "why": "Everyone shares 3 statements — two true, one false — and others guess the lie. Reveals surprising stories; genuinely fun to watch adults get caught",
+    "rules": {
+      "play": ["Go around the circle; each player states 3 things about themselves — 2 true and 1 false, in any order", "Other players discuss, then vote on which statement they think is the lie", "After the vote, the player reveals the lie and the real story behind the truths"],
+      "win": "No formal winner — score 1 point for each person you successfully fool, or just enjoy the stories."
+    }
+  },
+  { "name": "Never Have I Ever (Family)", "category": "Verbal", "min_players": 3, "max_players": 20, "min_age": 8, "min_time": 10, "max_time": 25, "ideal_energy": "Low", "attention": "Low", "adult_enjoyment": 3, "kid_independence": "Independent", "setup_friction": "None", "equipment": "None", "avoid_tags": [], "mood_tags": ["laugh", "calm"], "why": "One person names something they've never done; anyone who HAS done it loses a point. Family version keeps it wholesome — you'd be surprised what kids reveal",
+    "rules": {
+      "play": ["Everyone holds up 5 fingers (or starts with 5 chips/coins)", "One player says 'Never have I ever...' followed by something they genuinely haven't done", "Anyone who HAS done it puts one finger down (or gives up a chip)", "Play passes to the next person clockwise"],
+      "win": "Last player with fingers or chips remaining wins. Keep topics family-friendly — funny over awkward."
+    }
+  },
+  { "name": "Categories", "category": "Verbal", "min_players": 2, "max_players": 15, "min_age": 8, "min_time": 10, "max_time": 20, "ideal_energy": "Low", "attention": "Medium", "adult_enjoyment": 3, "kid_independence": "Semi", "setup_friction": "None", "equipment": "None", "avoid_tags": ["young_kids"], "mood_tags": ["competitive", "quick"], "why": "Name things from a category starting with a given letter — fast rounds, surprising blanks, and kids occasionally stump adults on easy categories",
+    "rules": {
+      "play": ["One player names a category (e.g. 'types of food') and a starting letter (e.g. 'S')", "Going around the circle, each player has 5 seconds to name something in that category beginning with that letter", "If you repeat something already said or can't answer in time, you're out for that round", "The next round: pick a new category and letter"],
+      "win": "Last player remaining in a round scores a point. First to 5 points wins — or play casually and just keep score."
+    }
+  },
+  { "name": "Fishbowl", "category": "Verbal", "min_players": 4, "max_players": 20, "min_age": 8, "min_time": 30, "max_time": 60, "ideal_energy": "Medium", "attention": "Medium", "adult_enjoyment": 5, "kid_independence": "Semi", "setup_friction": "Low", "equipment": "Other", "avoid_tags": ["young_kids", "short_time"], "mood_tags": ["laugh", "competitive"], "why": "Three rounds with the same names in a bowl: describe freely, then act it out, then one word only — round 3 is uniquely, painfully hilarious" },
+  { "name": "Wink Murderer", "category": "Verbal", "min_players": 6, "max_players": 20, "min_age": 7, "min_time": 10, "max_time": 20, "ideal_energy": "Low", "attention": "Medium", "adult_enjoyment": 3, "kid_independence": "Independent", "setup_friction": "None", "equipment": "None", "avoid_tags": [], "mood_tags": ["laugh", "calm"], "why": "A secret murderer winks people out silently while others try to catch them — the struggle to stay poker-faced while dying dramatically is the whole game",
+    "rules": {
+      "play": ["Everyone sits in a circle. Secretly choose one Murderer — have everyone close eyes while you tap one person, or draw a card.", "The Murderer winks discreetly at other players. Anyone who is winked at waits a moment, then dramatically 'dies' and is out.", "Any player who thinks they know the Murderer can accuse — but they need a second. If they're wrong, they're eliminated too.", "The Murderer wins by eliminating everyone before being correctly identified."],
+      "win": "Murderer wins by eliminating everyone. Villagers win by correctly identifying the Murderer."
+    }
+  },
+  { "name": "Truth or Dare (Family)", "category": "Verbal", "min_players": 3, "max_players": 15, "min_age": 8, "min_time": 15, "max_time": 40, "ideal_energy": "Medium", "attention": "Low", "adult_enjoyment": 3, "kid_independence": "Independent", "setup_friction": "None", "equipment": "None", "avoid_tags": ["young_kids"], "mood_tags": ["laugh", "competitive"], "why": "Choose truth (answer honestly) or dare (do something silly). Family dares keep it fun for everyone; kids love issuing challenges to grown-ups",
+    "rules": {
+      "play": ["Players take turns choosing 'Truth' or 'Dare'", "Truth: the group asks any question — you must answer honestly", "Dare: the group gives you a challenge — keep dares silly and achievable, not embarrassing or physically risky", "No skipping — but anyone can veto a dare that crosses a line and propose a replacement"],
+      "win": "No winner — play until everyone has had a turn or you decide to stop."
+    }
+  },
+  { "name": "Mafia", "category": "Verbal", "min_players": 6, "max_players": 20, "min_age": 10, "min_time": 20, "max_time": 45, "ideal_energy": "Low", "attention": "Medium", "adult_enjoyment": 4, "kid_independence": "Semi", "setup_friction": "None", "equipment": "None", "avoid_tags": ["young_kids", "short_time"], "mood_tags": ["competitive", "laugh"], "why": "Villagers try to identify hidden Mafia through debate and voting — social deduction at its best. The accusations and desperate alibis are always entertaining",
+    "rules": {
+      "play": ["One player is the Moderator (not playing). Everyone closes eyes. Moderator secretly taps 1–2 players to be Mafia (2 for 8+ players).", "Night: everyone closes eyes; Mafia open eyes and silently agree on a victim; everyone opens eyes.", "Day: the group debates who might be Mafia. Vote to eliminate one player — majority rules. Eliminated players reveal their role.", "Repeat night and day phases."],
+      "win": "Mafia wins when they equal or outnumber the remaining villagers. Villagers win when all Mafia are eliminated."
+    }
+  },
+  { "name": "Word Association", "category": "Verbal", "min_players": 2, "max_players": 15, "min_age": 6, "min_time": 5, "max_time": 15, "ideal_energy": "Low", "attention": "Low", "adult_enjoyment": 3, "kid_independence": "Independent", "setup_friction": "None", "equipment": "None", "avoid_tags": [], "mood_tags": ["quick", "calm", "laugh"], "why": "Say the first word that comes to mind from the previous word — the chain takes wild turns and accidental connections are reliably funny",
+    "rules": {
+      "play": ["One player says any word to start", "Moving around the circle, each player immediately says the first word that comes to mind from the previous word — no pausing to think", "If you hesitate too long, repeat a recent word, or say something with no logical connection, you're out for the round"],
+      "win": "Last player remaining wins the round. Play as many rounds as you like."
+    }
+  },
+  { "name": "The Alphabet Game", "category": "Verbal", "min_players": 2, "max_players": 15, "min_age": 7, "min_time": 5, "max_time": 20, "ideal_energy": "Low", "attention": "Medium", "adult_enjoyment": 3, "kid_independence": "Semi", "setup_friction": "None", "equipment": "None", "avoid_tags": ["young_kids"], "mood_tags": ["competitive", "quick"], "why": "Name things from a category going letter by letter A to Z — easy categories are still surprisingly hard under pressure, and X always breaks everyone",
+    "rules": {
+      "play": ["Agree on a category (e.g. 'animals', 'countries', 'foods', 'movie titles')", "First player names something starting with A, next player says B, and so on around the group", "If a player can't name something within 5 seconds, they're out — the next player tries the same letter", "Continue through to Z"],
+      "win": "Player who contributes the most letters wins — or play cooperatively and see how far the group gets together."
+    }
+  }
 ]
